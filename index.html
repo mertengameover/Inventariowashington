@@ -3,59 +3,998 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario y Ventas - Pizzería Tomasito</title>
-    <!-- Tailwind CSS para los estilos -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Inventario - Pizzería Tomasito</title>
+    <style>
+        :root {
+            --primary: #c0392b;
+            --primary-dark: #962d22;
+            --secondary: #2c3e50;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: var(--bg);
+            color: var(--text);
+            user-select: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0 0 5px 0;
+            font-size: 1.5rem;
+        }
+
+        .subtitle {
+            color: var(--secondary);
+            font-size: 0.85rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .controls-card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--primary);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 90px;
+            padding: 9px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .btn-reset { background-color: #7f8c8d; }
+        .btn-export { background-color: #27ae60; }
+        .btn-print { background-color: var(--secondary); }
+        .btn-backup { background-color: #2980b9; }
+        .btn-cloud { background-color: #8e44ad; }
+        .btn-add { background-color: var(--primary); width: 100%; margin-top: 8px; }
+        .btn-add-cat { background-color: #16a085; width: 100%; margin-top: 6px; }
+
+        .category-section {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .category-header {
+            background-color: var(--secondary);
+            color: white;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .cat-title-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .cat-title-input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: bold;
+            width: 100%;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .cat-title-input:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.4);
+            outline: none;
+        }
+
+        .category-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-cat-action {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-cat-action:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+        .category-count {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .category-footer {
+            background-color: #f1f4f6;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+
+        .items-list {
+            padding: 2px 10px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 6px;
+            background-color: #ffffff;
+            transition: background-color 0.2s;
+        }
+
+        .item-row[draggable="true"] {
+            cursor: grab;
+        }
+
+        .item-row[draggable="true"]:active {
+            cursor: grabbing;
+        }
+
+        .item-row.dragging {
+            opacity: 0.4;
+            background: #fdfefe;
+            border: 2px dashed var(--primary);
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            color: #95a5a6;
+            font-size: 1.1rem;
+            padding: 0 2px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 110px;
+            padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .item-details-text {
+            font-size: 0.7rem;
+            color: #7f8c8d;
+        }
+
+        .item-inputs-scroll {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 3px;
+            scrollbar-width: thin;
+            max-width: 100%;
+        }
+
+        .item-inputs {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .input-group label {
+            font-size: 0.55rem;
+            color: #7f8c8d;
+            margin-bottom: 1px;
+            text-transform: uppercase;
+        }
+
+        input[type="number"] {
+            width: 44px;
+            padding: 7px 2px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        input[type="number"].price-field {
+            width: 62px;
+            border-color: #bdc3c7;
+            background-color: #fdfefe;
+        }
+
+        input[type="number"].total-field {
+            background-color: #eef2f5;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 2px;
+            color: #7f8c8d;
+            flex-shrink: 0;
+        }
+
+        .btn-action:hover {
+            color: var(--primary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--secondary);
+        }
+
+        .modal-content label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        }
+
+        .modal-content input, .modal-content select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel { background-color: #95a5a6; }
+        .btn-save { background-color: #27ae60; }
+        .btn-delete-item { background-color: #e74c3c; }
+
+        .choice-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            text-align: left;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .choice-btn:hover {
+            background: #f1f4f6;
+            border-color: var(--secondary);
+        }
+
+        .choice-btn span {
+            display: block;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            display: none;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .controls-card, button, .btn-action, .btn-cat-action, .drag-handle { display: none; }
+            .category-section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+            .category-header { background-color: #333 !important; -webkit-print-color-adjust: exact; }
+            .cat-title-input { border: none; background: transparent; color: white !important; }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans">
+<body>
 
-    <div class="max-w-6xl mx-auto p-4 mb-12">
-        <header class="bg-white shadow rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-red-600 mb-1">🍕 Pizzería Tomasito - Control de Stock</h1>
-                <p class="text-sm text-gray-600">Sincronizado con JSONBin (GitHub + Netlify).</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="cargarDatos()" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm font-semibold shadow">🔄 Recargar</button>
-                <button onclick="guardarDatos()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-semibold shadow">💾 Guardar Cambios</button>
-            </div>
-        </header>
+    <header>
+        <h1>PIZZERÍA TOMASITO</h1>
+        <p class="subtitle">Control de Inventario y Stock</p>
+    </header>
 
-        <!-- Contenedor del Inventario -->
-        <div id="contenedorInventario" class="space-y-6">
-            <div class="bg-white shadow rounded-lg p-6 text-center">
-                <p class="text-blue-500 font-medium">Cargando inventario desde la nube...</p>
+    <div class="controls-card">
+        <input type="text" id="buscador" class="search-box" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
+        <button class="btn-add" onclick="abrirModalNuevo()">+ Agregar Nuevo Producto</button>
+        <button class="btn-add-cat" onclick="abrirModalNuevaCategoria()">+ Agregar Nueva Sección</button>
+        <div class="actions-row">
+            <button class="btn-export" onclick="compartirWhatsApp()">WhatsApp</button>
+            <button class="btn-backup" onclick="abrirModalExportar()">Exportar</button>
+            <button class="btn-cloud" onclick="abrirModalRestaurar()">Restaurar</button>
+            <button class="btn-print" onclick="window.print()">Imprimir</button>
+            <button class="btn-reset" onclick="reiniciarStock()">Limpiar</button>
+        </div>
+    </div>
+
+    <div id="contenedorInventario"></div>
+    <div id="noResults" class="no-results">No se encontraron productos coincidentes.</div>
+
+    <!-- Modal Elegir Exportar (Dispositivo o Nube) -->
+    <div id="modalExportar" class="modal">
+        <div class="modal-content">
+            <h3>Exportar Inventario</h3>
+            <p style="font-size: 0.85rem; color: #666; margin-top: 0;">¿Dónde deseas guardar tu respaldo?</p>
+            
+            <button class="choice-btn" onclick="exportarDispositivo()">
+                💾 En Dispositivo (Archivo .json)
+                <span>Descarga un archivo de respaldo en tu celular o PC.</span>
+            </button>
+            
+            <button class="choice-btn" onclick="exportarNube()">
+                ☁️ En la Nube (JSONBin.io)
+                <span>Sube los datos actualizados a tu base en la nube.</span>
+            </button>
+
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button class="btn-cancel" onclick="cerrarModalExportar()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Elegir Restaurar (Dispositivo o Nube) -->
+    <div id="modalRestaurar" class="modal">
+        <div class="modal-content">
+            <h3>Restaurar Inventario</h3>
+            <p style="font-size: 0.85rem; color: #666; margin-top: 0;">¿De dónde deseas recuperar los datos?</p>
+            
+            <button class="choice-btn" onclick="importarDispositivoPrompt()">
+                📂 Desde Dispositivo (Archivo .json)
+                <span>Selecciona un archivo guardado en tu equipo.</span>
+            </button>
+            
+            <button class="choice-btn" onclick="importarNube()">
+                ☁️ Desde la Nube (JSONBin.io)
+                <span>Descarga y aplica los datos desde tu base en la nube.</span>
+            </button>
+
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button class="btn-cancel" onclick="cerrarModalRestaurar()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Configuración JSONBin -->
+    <div id="modalConfigCloud" class="modal">
+        <div class="modal-content">
+            <h3>Configurar Conexión Nube</h3>
+            <p style="font-size: 0.82rem; color: #666; margin-top: 0;">Ingresa los datos de tu Bin en JSONBin.io (solo la primera vez).</p>
+            
+            <label>Bin ID:</label>
+            <input type="text" id="inputBinId" placeholder="Ej: 64a8b7...">
+
+            <label>Master Key (X-Master-Key):</label>
+            <input type="password" id="inputMasterKey" placeholder="Ej: $2a$10$...">
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="cerrarModalConfigCloud()">Cancelar</button>
+                <button class="btn-save" onclick="guardarConfigCloudYContinuar()">Guardar y Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar / Crear Producto -->
+    <div id="modalProducto" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitulo">Editar Producto</h3>
+            <input type="hidden" id="editCatIndex">
+            <input type="hidden" id="editItemIndex">
+
+            <label>Nombre del Producto:</label>
+            <input type="text" id="inputNombreItem">
+
+            <label>Sección:</label>
+            <select id="selectCategoriaItem"></select>
+
+            <label>Tipo de Cantidad:</label>
+            <select id="selectTipoCantidad">
+                <option value="unidad">Unidad</option>
+                <option value="litro">Litro</option>
+                <option value="kilogramos">Kilogramos</option>
+                <option value="gramos">Gramos</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button id="btnEliminarProd" class="btn-delete-item" onclick="eliminarProducto()">Eliminar</button>
+                <button class="btn-save" onclick="guardarEdicionProducto()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Categoría -->
+    <div id="modalCategoria" class="modal">
+        <div class="modal-content">
+            <h3>Nueva Sección / Categoría</h3>
+            <label>Nombre de la Sección:</label>
+            <input type="text" id="inputNombreCategoria" placeholder="Ej: VINOS, EXTRAS, ETC.">
+
+            <label>¿Es categoría de bebidas (Salón + Depósito)?</label>
+            <select id="selectEsBebidaCat">
+                <option value="false">No (Stock simple en depósito)</option>
+                <option value="true">Sí (Salón + Depósito)</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="cerrarModalCategoria()">Cancelar</button>
+                <button class="btn-save" onclick="guardarNuevaCategoria()">Crear Sección</button>
             </div>
         </div>
     </div>
 
     <script>
-        const BIN_ID = '6ae89fc2ac6210605a660242';
-        const MASTER_KEY = '$2a$10$ezuX9AyY6.cSIpMcu4/UYeKBXT9GY9dNvkTu6his1ZkAoCidM6qSy';
-        
-        let datosInventario = [];
+        const STORAGE_KEY = 'tomasito_datos_inventario_v19';
+        let cloudActionPending = null;
 
-        async function cargarDatos() {
-            const contenedor = document.getElementById('contenedorInventario');
-            contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-blue-500 font-medium">Sincronizando con JSONBin...</p></div>';
+        let datosInventario = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+            {
+                categoria: "CERVEZAS",
+                es_bebida: true,
+                orden: "manual",
+                items: [
+                    { nombre: "ANDES ORIGEN X 473 CC", tipo: "unidad" },
+                    { nombre: "ANDES ORIGEN X 710 CC", tipo: "unidad", salon: "19", deposito: "12" },
+                    { nombre: "STELLA ARTOIS X 473 CC", tipo: "unidad", salon: "12", deposito: "0" },
+                    { nombre: "STELLA ARTOIS X 710", tipo: "unidad", salon: "12", deposito: "66" },
+                    { nombre: "STELLA SIN ALCOHOL X 473", tipo: "unidad" },
+                    { nombre: "BUDWEISER X 473 CC", tipo: "unidad", salon: "12", deposito: "16" },
+                    { nombre: "BUDWEISER X 710 CC", tipo: "unidad", salon: "13", deposito: "20" },
+                    { nombre: "CORONA", tipo: "unidad", salon: "4", deposito: "48" },
+                    { nombre: "HEINEKEN SIN ALCOHOL X 473 CC", tipo: "unidad" },
+                    { nombre: "BRAHMMA", tipo: "unidad", salon: "32", deposito: "24" },
+                    { nombre: "QUILMES", tipo: "unidad", salon: "32", deposito: "84" },
+                    { nombre: "CORONA SIN ALCOHOL", tipo: "unidad" },
+                    { nombre: "BOTELLA PET HONEY", tipo: "unidad", salon: "14", deposito: "0" },
+                    { nombre: "BOTELLA PET IPA", tipo: "unidad", salon: "8", deposito: "0" },
+                    { nombre: "BOTELLA PET GOLDEN", tipo: "unidad" },
+                    { nombre: "PATAGONIA X 473", tipo: "unidad" },
+                    { nombre: "PATAGONIA  X 730", tipo: "unidad", salon: "11", deposito: "6" },
+                    { nombre: "GIN TONIC", tipo: "unidad" },
+                    { nombre: "VODKA", tipo: "litro" },
+                    { nombre: "BARRIL HONEY", tipo: "litro" },
+                    { nombre: "BARRIL STOUT", tipo: "litro" },
+                    { nombre: "BARRIL IPA", tipo: "litro" },
+                    { nombre: "BARRIL SCOTCH", tipo: "litro" },
+                    { nombre: "BARONE X LITRO", tipo: "litro" }
+                ]
+            },
+            {
+                categoria: "GASEOSAS Y OTRAS",
+                es_bebida: true,
+                orden: "manual",
+                items: [
+                    { nombre: "AQUARIUS  X 1.500 CC", tipo: "unidad", salon: "43", deposito: "8" },
+                    { nombre: "AQUARIUS X 500 CC", tipo: "unidad", salon: "32", deposito: "10" },
+                    { nombre: "BONAQUA PET X 1.500 CC. SIN GAS", tipo: "unidad", salon: "7", deposito: "0" },
+                    { nombre: "BONAQUA PET X600 CC CON GAS", tipo: "unidad", salon: "5", deposito: "0" },
+                    { nombre: "BONAQUA PET X 500 CC. SIN GAS", tipo: "unidad", salon: "7", deposito: "8" },
+                    { nombre: "CEPITA BOTELLA X 1.500 ", tipo: "unidad", salon: "12", deposito: "0" },
+                    { nombre: "CEPITA X 200 CC", tipo: "unidad", salon: "5", deposito: "2" },
+                    { nombre: "COCA COLA X 220", tipo: "unidad", salon: "6", deposito: "0" },
+                    { nombre: "GASEOSAS X1. 500 CC", tipo: "unidad", salon: "46", deposito: "60" },
+                    { nombre: "GASEOSAS X 500 CC", tipo: "unidad", salon: "32", deposito: "22" },
+                    { nombre: "MONSTER NG ULTR ZE X 473 CC", tipo: "unidad", salon: "5", deposito: "2" },
+                    { nombre: "SPRITE X 220", tipo: "unidad", salon: "6", deposito: "0" },
+                    { nombre: "SCHWEPPES TONICA X 1,500 CC", tipo: "unidad" },
+                    { nombre: "SCHWEPPES LATA X 310", tipo: "unidad" }
+                ]
+            },
+            {
+                categoria: "OTRAS BEBIDAS",
+                es_bebida: true,
+                orden: "manual",
+                items: [
+                    { nombre: "ALMA MORA MALBECK X 750 CC.", tipo: "unidad" },
+                    { nombre: "FERNET BRANCA X LITRO", tipo: "litro", salon: "0.5", deposito: "4" },
+                    { nombre: "JUGO DE LIMON MINERVA", tipo: "litro", salon: "0", deposito: "0.5" },
+                    { nombre: "SANTA JULIA CHENIN DULCE X 750", tipo: "unidad", salon: "4", deposito: "0" },
+                    { nombre: "CINZANO ROSSO", tipo: "litro", salon: "0", deposito: "1" },
+                    { nombre: "GANCIA", tipo: "litro", salon: "0", deposito: "1" }
+                ]
+            },
+            {
+                categoria: "HELADOS LA CHIARA",
+                es_bebida: false,
+                orden: "manual",
+                items: [
+                    { nombre: "ALMENDRADO", tipo: "unidad", deposito: "8" },
+                    { nombre: "BOMBON ESCOCES", tipo: "unidad", deposito: "21" },
+                    { nombre: "CASATTA ", tipo: "unidad", deposito: "11" }
+                ]
+            },
+            {
+                categoria: "ALMACEN",
+                es_bebida: false,
+                orden: "manual",
+                items: [
+                    { nombre: "ACEITE X 900 CC", tipo: "litro" },
+                    { nombre: "ACEITE X 1,5 LTS", tipo: "litro", deposito: "20" },
+                    { nombre: "ACEITE X 4,5 LTS", tipo: "litro" },
+                    { nombre: "ACEITUNAS VERDES DESCAROZADAS", tipo: "kilogramos", deposito: "20" },
+                    { nombre: "ACEITUNAS NEGRAS X KG", tipo: "kilogramos", deposito: "3" },
+                    { nombre: "AJO EN POLVO X KG", tipo: "kilogramos", deposito: "0.1" },
+                    { nombre: "ANANA EN TROZOS LA BANDA X 3 KG", tipo: "unidad", deposito: "0" },
+                    { nombre: "ANANA EN TROZOS X 825 GRS", tipo: "gramos", deposito: "5" },
+                    { nombre: "ANCHOAS X FRASCO - precio unitario", tipo: "unidad", deposito: "0.1" },
+                    { nombre: "BANDEJA 628 SUPER LIVIANA X 100", tipo: "unidad", deposito: "0.5" },
+                    { nombre: "BOBINA 25 CM. X 400 MTS PS", tipo: "unidad", deposito: "2" },
+                    { nombre: "CEBOLLAS X BOLSA", tipo: "unidad", deposito: "1" },
+                    { nombre: "CHAMPIGNON  LAMINADO CUMANA 400", tipo: "gramos", deposito: "2" },
+                    { nombre: "CHEDDAR DOÑA AURORA X KG", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "CHOCLO", tipo: "unidad", deposito: "1" },
+                    { nombre: "HARINA BOLSA X 25 KGS", tipo: "kilogramos", deposito: "3" },
+                    { nombre: "LAMINAS SEPARADORAS A.D. X KG", tipo: "kilogramos", deposito: "6" },
+                    { nombre: "LEVADURA", tipo: "unidad", deposito: "4" },
+                    { nombre: "MANI JAPONES ARO", tipo: "gramos", deposito: "1" },
+                    { nombre: "MORRONES POR CAJON", tipo: "unidad", deposito: "4" },
+                    { nombre: "MORRONES X 2500GR.", tipo: "gramos", deposito: "4" },
+                    { nombre: "MUZZARELLA X 1 KG", tipo: "kilogramos", deposito: "30" },
+                    { nombre: "OREGANO X KG", tipo: "kilogramos", deposito: "2" },
+                    { nombre: "PALMITOS EN LATA x 400 GRS", tipo: "gramos" },
+                    { nombre: "PALMITOS EN LATA X 800 GRS", tipo: "gramos", deposito: "20" },
+                    { nombre: "PAPAS PAY", tipo: "gramos", deposito: "0.5" },
+                    { nombre: "PROVOLONNE X KG", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "REGGIANITTO X KG", tipo: "kilogramos", deposito: "0.75" },
+                    { nombre: "RESMA SATINADO FONDO PIZZA X KG.", tipo: "kilogramos", deposito: "7" },
+                    { nombre: "ROQUEFORT X KG", tipo: "kilogramos", deposito: "2" },
+                    { nombre: "SAL FINA X KG", tipo: "kilogramos", deposito: "6" },
+                    { nombre: "SALSA BARBACOA  X KILO", tipo: "kilogramos", deposito: "3" },
+                    { nombre: "SALSA GOLF X 250", tipo: "gramos", deposito: "2" },
+                    { nombre: "SALSA GOLF CAJA X 2.900", tipo: "gramos", deposito: "0" },
+                    { nombre: "SALSA GOLF NATURA 192 X 8 GRAS", tipo: "gramos", deposito: "0" },
+                    { nombre: "SERVILLETAS 33 X 32 ELEGANTE", tipo: "unidad", deposito: "2" },
+                    { nombre: "TOMATE X 8 KGS", tipo: "kilogramos", deposito: "16" },
+                    { nombre: "QUESO CREMA X KG", tipo: "kilogramos", deposito: "2" },
+                    { nombre: "TOMATES X KILO", tipo: "kilogramos", deposito: "1" }
+                ]
+            },
+            {
+                categoria: "SNACKS",
+                es_bebida: false,
+                orden: "manual",
+                items: [
+                    { nombre: "TWISTOS", tipo: "unidad" },
+                    { nombre: "MANI 150 GRS", tipo: "gramos" },
+                    { nombre: "MANI 85 GRS", tipo: "gramos", deposito: "5" },
+                    { nombre: "PALISAL", tipo: "unidad" },
+                    { nombre: "MANIAX", tipo: "gramos", deposito: "4" },
+                    { nombre: "LAYS JAMON", tipo: "unidad" },
+                    { nombre: "LAYS flamin", tipo: "unidad" },
+                    { nombre: "DORITOS SWEET CHILI", tipo: "unidad" },
+                    { nombre: "DINAMITA", tipo: "unidad", deposito: "2" },
+                    { nombre: "PEHUAMAR MATAMBRE", tipo: "unidad", deposito: "2" },
+                    { nombre: "DORITOS", tipo: "unidad", deposito: "1" },
+                    { nombre: "CHETOS", tipo: "unidad", deposito: "4" },
+                    { nombre: "MAICITOS PEHUAMAR", tipo: "unidad", deposito: "2" },
+                    { nombre: "PAPAS PEHUAMAR LISA", tipo: "unidad" },
+                    { nombre: "PAPAS PEHUAMAR ACANALADAS", tipo: "unidad", deposito: "3" },
+                    { nombre: "3D", tipo: "unidad", deposito: "2" },
+                    { nombre: "LAYS CLASICA", tipo: "unidad", deposito: "15" },
+                    { nombre: "RUEDITAS", tipo: "unidad", deposito: "4" },
+                    { nombre: "RAMITAS", tipo: "unidad" }
+                ]
+            },
+            {
+                categoria: "FIAMBRES",
+                es_bebida: false,
+                orden: "manual",
+                items: [
+                    { nombre: "BONDIOLA", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "CANTIMPALO “EL BIERZO”", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "FIAMBRE DE PATA DE CERDO LARIO X KG", tipo: "kilogramos", deposito: "7" },
+                    { nombre: "JAMÓN CRUDO 1193 ½ LISTO", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "LOMITO AHUMADO", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "PANCETA AHUMADA Y SALADA ", tipo: "kilogramos", deposito: "7" },
+                    { nombre: "PEPPERONI", tipo: "kilogramos", deposito: "3" },
+                    { nombre: "SALCHICHAS FADEA", tipo: "unidad", deposito: "4" },
+                    { nombre: "MATAMBRE DE CARNE", tipo: "kilogramos", deposito: "0" },
+                    { nombre: "pastron", tipo: "kilogramos", deposito: "2" }
+                ]
+            },
+            {
+                categoria: "CAJAS",
+                es_bebida: false,
+                orden: "manual",
+                items: [
+                    { nombre: "CAJAS 1/2 PIZZA", tipo: "unidad", deposito: "100" },
+                    { nombre: "CAJAS PIZZA CHICA", tipo: "unidad" },
+                    { nombre: "CAJAS POR UNIDAD", tipo: "unidad", deposito: "750" }
+                ]
+            },
+            {
+                categoria: "PIZZAS Y PREPIZZAS",
+                es_bebida: false,
+                orden: "manual",
+                items: [
+                    { nombre: "PIZZAS MUZZA", tipo: "unidad", deposito: "50" },
+                    { nombre: "PIZZAS MUZZA Y JAMON", tipo: "unidad", deposito: "35" },
+                    { nombre: "PIZZAS MUCHA CHICA", tipo: "unidad" },
+                    { nombre: "PIZZAS RELLENAS", tipo: "unidad" },
+                    { nombre: "PIZZA FUGAZZETTA", tipo: "unidad" },
+                    { nombre: "PIZZA PANCETA CHICA", tipo: "unidad" },
+                    { nombre: "FUGAZZETTA CHICA", tipo: "unidad" },
+                    { nombre: "PIZZAS PANCETA", tipo: "unidad", deposito: "1.5" },
+                    { nombre: "PIZZA CUATRO QUESOS", tipo: "unidad" },
+                    { nombre: "BOMBA ROQUE", tipo: "unidad", deposito: "1" },
+                    { nombre: "MUZZA Y MORRONES", tipo: "unidad" },
+                    { nombre: "MUZZA Y ACEITUNAS", tipo: "unidad" },
+                    { nombre: "FUGAZZA", tipo: "unidad", deposito: "6.5" },
+                    { nombre: "FUGAZZA CHICA", tipo: "unidad" },
+                    { nombre: "SUPER ESPECIAL", tipo: "unidad" },
+                    { nombre: "ESPECIAL", tipo: "unidad" },
+                    { nombre: "PEPPERONI", tipo: "unidad" },
+                    { nombre: "PREPIZZAS", tipo: "unidad" },
+                    { nombre: "RELLENA CHICA", tipo: "unidad" },
+                    { nombre: "1/2 MUZZARELLA-1/2 MUZZA Y JAMON", tipo: "unidad" },
+                    { nombre: "1/PANCETA - 1/2 MUZZA", tipo: "unidad", deposito: "6" },
+                    { nombre: "pan integral ", tipo: "unidad", deposito: "22" },
+                    { nombre: "pan comun", tipo: "unidad", deposito: "14" },
+                    { nombre: "sin tacc", tipo: "unidad", deposito: "12" },
+                    { nombre: "jamon cocido", tipo: "kilogramos", deposito: "0.5" },
+                    { nombre: "queso dambo", tipo: "kilogramos", deposito: "1" },
+                    { nombre: "pizza integral", tipo: "unidad", deposito: "32" }
+                ]
+            }
+        ];
 
-            try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Master-Key': MASTER_KEY
+        function guardarEstructura() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(datosInventario));
+        }
+
+        // Modales Exportar / Restaurar
+        function abrirModalExportar() {
+            document.getElementById('modalExportar').style.display = 'flex';
+        }
+        function cerrarModalExportar() {
+            document.getElementById('modalExportar').style.display = 'none';
+        }
+
+        function abrirModalRestaurar() {
+            document.getElementById('modalRestaurar').style.display = 'flex';
+        }
+        function cerrarModalRestaurar() {
+            document.getElementById('modalRestaurar').style.display = 'none';
+        }
+
+        function abrirModalConfigCloud(action) {
+            cloudActionPending = action; // 'export' or 'import'
+            document.getElementById('inputBinId').value = localStorage.getItem('tomasito_bin_id') || '';
+            document.getElementById('inputMasterKey').value = localStorage.getItem('tomasito_master_key') || '';
+            document.getElementById('modalConfigCloud').style.display = 'flex';
+        }
+        function cerrarModalConfigCloud() {
+            document.getElementById('modalConfigCloud').style.display = 'none';
+        }
+
+        function guardarConfigCloudYContinuar() {
+            const binId = document.getElementById('inputBinId').value.trim();
+            const masterKey = document.getElementById('inputMasterKey').value.trim();
+
+            if (!binId || !masterKey) {
+                alert('Por favor completa ambos campos.');
+                return;
+            }
+
+            localStorage.setItem('tomasito_bin_id', binId);
+            localStorage.setItem('tomasito_master_key', masterKey);
+            cerrarModalConfigCloud();
+
+            if (cloudActionPending === 'export') {
+                ejecutarExportarNube(binId, masterKey);
+            } else if (cloudActionPending === 'import') {
+                ejecutarImportarNube(binId, masterKey);
+            }
+        }
+
+        // Acciones Dispositivo
+        function exportarDispositivo() {
+            cerrarModalExportar();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosInventario));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "inventario_tomasito_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importarDispositivoPrompt() {
+            cerrarModalRestaurar();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const parsed = JSON.parse(event.target.result);
+                        if (Array.isArray(parsed)) {
+                            datosInventario = parsed;
+                            guardarEstructura();
+                            renderizarInventario();
+                            alert('¡Inventario restaurado con éxito desde el archivo!');
+                        } else {
+                            alert('El archivo no tiene un formato válido.');
+                        }
+                    } catch (err) {
+                        alert('Error al leer el archivo JSON.');
                     }
-                });
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
 
-                if (!response.ok) throw new Error('No se pudo conectar con JSONBin');
+        // Acciones Nube (JSONBin.io)
+        function exportarNube() {
+            cerrarModalExportar();
+            const binId = localStorage.getItem('tomasito_bin_id');
+            const masterKey = localStorage.getItem('tomasito_master_key');
+            if (!binId || !masterKey) {
+                abrirModalConfigCloud('export');
+            } else {
+                ejecutarExportarNube(binId, masterKey);
+            }
+        }
 
-                const data = await response.json();
-                datosInventario = data.record;
+        function importarNube() {
+            cerrarModalRestaurar();
+            const binId = localStorage.getItem('tomasito_bin_id');
+            const masterKey = localStorage.getItem('tomasito_master_key');
+            if (!binId || !masterKey) {
+                abrirModalConfigCloud('import');
+            } else {
+                ejecutarImportarNube(binId, masterKey);
+            }
+        }
 
-                renderizarInventario();
-            } catch (error) {
-                console.error(error);
-                contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500 font-semibold">Error al cargar los datos. Verificá tu Bin ID.</p></div>';
+        function ejecutarExportarNube(binId, masterKey) {
+            fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': masterKey
+                },
+                body: JSON.stringify(datosInventario)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('¡Inventario guardado en la nube con éxito!');
+                } else {
+                    alert('Error al guardar en la nube. Verifica tus credenciales (Bin ID / Master Key).');
+                }
+            })
+            .catch(err => {
+                alert('Error de conexión con la nube.');
+            });
+        }
+
+        function ejecutarImportarNube(binId, masterKey) {
+            fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': masterKey
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Error al conectar con JSONBin');
+                }
+            })
+            .then(data => {
+                const record = data.record;
+                if (Array.isArray(record)) {
+                    datosInventario = record;
+                    guardarEstructura();
+                    renderizarInventario();
+                    alert('¡Inventario descargado y restaurado desde la nube con éxito!');
+                } else {
+                    alert('El contenido del Bin no tiene el formato correcto.');
+                }
+            })
+            .catch(err => {
+                alert('Error al recuperar de la nube. Verifica tus credenciales.');
+            });
+        }
+
+        function cambiarNombreCategoria(catIndex, nuevoNombre) {
+            const nombreLimpio = nuevoNombre.trim();
+            if (!nombreLimpio) return;
+            datosInventario[catIndex].categoria = nombreLimpio;
+            guardarEstructura();
+        }
+
+        function cambiarOrdenCategoria(catIndex) {
+            const actual = datosInventario[catIndex].orden || 'manual';
+            datosInventario[catIndex].orden = (actual === 'manual') ? 'az' : 'manual';
+            guardarEstructura();
+            renderizarInventario();
+        }
+
+        let draggedItemIndex = null;
+        let draggedCatIndex = null;
+
+        function handleDragStart(e, catIndex, itemIndex) {
+            draggedCatIndex = catIndex;
+            draggedItemIndex = itemIndex;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e, catIndex, targetIndex) {
+            e.preventDefault();
+            if (draggedCatIndex !== catIndex) return;
+            if (draggedItemIndex === targetIndex) return;
+
+            const items = datosInventario[catIndex].items;
+            const movedItem = items.splice(draggedItemIndex, 1)[0];
+            items.splice(targetIndex, 0, movedItem);
+
+            datosInventario[catIndex].orden = 'manual';
+
+            guardarEstructura();
+            renderizarInventario();
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedItemIndex = null;
+            draggedCatIndex = null;
+        }
+
+        function calcularTotalCategoria(catIndex) {
+            let totalSeccion = 0;
+            const cat = datosInventario[catIndex];
+            
+            cat.items.forEach(item => {
+                const precio = parseFloat(item.precio) || 0;
+                if (cat.es_bebida) {
+                    const salon = parseFloat(item.salon) || 0;
+                    const deposito = parseFloat(item.deposito) || 0;
+                    totalSeccion += (salon + deposito) * precio;
+                } else {
+                    const deposito = parseFloat(item.deposito) || 0;
+                    totalSeccion += deposito * precio;
+                }
+            });
+
+            const el = document.getElementById(`total_cat_${catIndex}`);
+            if (el) {
+                el.innerText = '$ ' + totalSeccion.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
         }
 
@@ -63,83 +1002,372 @@
             const contenedor = document.getElementById('contenedorInventario');
             contenedor.innerHTML = '';
 
-            if (!Array.isArray(datosInventario)) {
-                contenedor.innerHTML = `<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500">El Bin está vacío o no tiene el formato correcto.</p></div>`;
-                return;
-            }
-
             datosInventario.forEach((cat, catIndex) => {
-                let htmlItems = '';
-                
-                if (cat.items && Array.isArray(cat.items)) {
-                    cat.items.forEach((item, itemIndex) => {
-                        htmlItems += `
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="py-2 px-4 text-sm text-gray-800 font-medium">${item.nombre}</td>
-                                <td class="py-2 px-4 text-sm text-gray-600 capitalize">${item.tipo || '-'}</td>
-                                <td class="py-2 px-4 text-sm text-center">
-                                    ${item.salon !== undefined ? `<input type="text" value="${item.salon}" onchange="actualizarValor(${catIndex}, ${itemIndex}, 'salon', this.value)" class="w-20 text-center border rounded p-1 bg-white">` : '-'}
-                                </td>
-                                <td class="py-2 px-4 text-sm text-center">
-                                    ${item.deposito !== undefined ? `<input type="text" value="${item.deposito}" onchange="actualizarValor(${catIndex}, ${itemIndex}, 'deposito', this.value)" class="w-20 text-center border rounded p-1 bg-white">` : '-'}
-                                </td>
-                            </tr>
-                        `;
-                    });
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                section.dataset.category = cat.categoria;
+
+                let itemsAProcesar = cat.items.map((item, originalIndex) => ({ ...item, originalIndex }));
+                const esManual = (cat.orden !== 'az');
+
+                if (!esManual) {
+                    itemsAProcesar.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
                 }
 
-                const seccion = `
-                    <div class="bg-white shadow rounded-lg p-6">
-                        <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2 flex justify-between items-center">
-                            <span>📂 ${cat.categoria}</span>
-                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Items: ${cat.items ? cat.items.length : 0}</span>
-                        </h2>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-left">
-                                <thead>
-                                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
-                                        <th class="py-2 px-4">Producto</th>
-                                        <th class="py-2 px-4">Tipo</th>
-                                        <th class="py-2 px-4 text-center">Salón</th>
-                                        <th class="py-2 px-4 text-center">Depósito</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${htmlItems}
-                                </tbody>
-                            </table>
+                let itemsHTML = '';
+                itemsAProcesar.forEach((itemObj, displayIndex) => {
+                    const realIndex = itemObj.originalIndex;
+                    const tipo = itemObj.tipo || 'unidad';
+                    const nombre = itemObj.nombre;
+                    
+                    const salon = itemObj.salon || '';
+                    const deposito = itemObj.deposito || '';
+                    const precio = itemObj.precio || '';
+
+                    const draggableAttr = esManual ? 'draggable="true"' : '';
+                    const dragEvents = esManual ? `ondragstart="handleDragStart(event, ${catIndex}, ${displayIndex})" ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${catIndex}, ${displayIndex})" ondragend="handleDragEnd(event)"` : '';
+                    const dragHandleHTML = esManual ? `<span class="drag-handle" title="Arrastrar para mover">☰</span>` : '';
+
+                    if (cat.es_bebida) {
+                        const total = calcularTotal(salon, deposito);
+
+                        itemsHTML += `
+                            <div class="item-row" ${draggableAttr} ${dragEvents} data-name="${nombre.toLowerCase()}">
+                                ${dragHandleHTML}
+                                <div class="item-info">
+                                    <span class="item-name">${nombre}</span>
+                                    <span class="item-details-text">${tipo}</span>
+                                </div>
+                                <div class="item-inputs-scroll">
+                                    <div class="item-inputs">
+                                        <div class="input-group">
+                                            <label>Salón</label>
+                                            <input type="number" min="0" step="any" placeholder="0" value="${salon}" id="salon_${catIndex}_${realIndex}" oninput="actualizarBebida(${catIndex}, ${realIndex}, this)">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Depósito</label>
+                                            <input type="number" min="0" step="any" placeholder="0" value="${deposito}" id="deposito_${catIndex}_${realIndex}" oninput="actualizarBebida(${catIndex}, ${realIndex}, this)">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Total</label>
+                                            <input type="number" class="total-field" value="${total}" id="total_${catIndex}_${realIndex}" readonly>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Precio $</label>
+                                            <input type="number" min="0" step="any" placeholder="0" value="${precio}" class="price-field" id="precio_${catIndex}_${realIndex}" oninput="actualizarPrecio(${catIndex}, ${realIndex}, this)">
+                                        </div>
+                                        <button class="btn-action" onclick="abrirModalEditar(${catIndex}, ${realIndex})" title="Editar">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        itemsHTML += `
+                            <div class="item-row" ${draggableAttr} ${dragEvents} data-name="${nombre.toLowerCase()}">
+                                ${dragHandleHTML}
+                                <div class="item-info">
+                                    <span class="item-name">${nombre}</span>
+                                    <span class="item-details-text">${tipo}</span>
+                                </div>
+                                <div class="item-inputs-scroll">
+                                    <div class="item-inputs">
+                                        <div class="input-group">
+                                            <label>Stock</label>
+                                            <input type="number" min="0" step="any" placeholder="0" value="${deposito}" id="deposito_${catIndex}_${realIndex}" oninput="guardarSimple(${catIndex}, ${realIndex}, this)">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Total</label>
+                                            <input type="number" class="total-field" value="${deposito}" id="total_${catIndex}_${realIndex}" readonly>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Precio $</label>
+                                            <input type="number" min="0" step="any" placeholder="0" value="${precio}" class="price-field" id="precio_${catIndex}_${realIndex}" oninput="actualizarPrecio(${catIndex}, ${realIndex}, this)">
+                                        </div>
+                                        <button class="btn-action" onclick="abrirModalEditar(${catIndex}, ${realIndex})" title="Editar">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                const ordenTexto = (cat.orden === 'az') ? 'AZ 🔀' : 'Manual ☰';
+
+                section.innerHTML = `
+                    <div class="category-header">
+                        <div class="cat-title-container">
+                            <input type="text" class="cat-title-input" value="${cat.categoria}" onchange="cambiarNombreCategoria(${catIndex}, this.value)">
+                        </div>
+                        <div class="category-actions">
+                            <button class="btn-cat-action" onclick="cambiarOrdenCategoria(${catIndex})" title="Cambiar orden">${ordenTexto}</button>
+                            <span class="category-count">${cat.items.length} ítems</span>
                         </div>
                     </div>
+                    <div class="items-list">
+                        ${itemsHTML}
+                    </div>
+                    <div class="category-footer">
+                        <span>Total Sección ($):</span>
+                        <span id="total_cat_${catIndex}">$ 0,00</span>
+                    </div>
                 `;
-                contenedor.innerHTML += seccion;
+
+                contenedor.appendChild(section);
+                calcularTotalCategoria(catIndex);
             });
         }
 
-        function actualizarValor(catIndex, itemIndex, campo, valor) {
-            datosInventario[catIndex].items[itemIndex][campo] = valor;
+        function calcularTotal(salon, deposito) {
+            const s = parseFloat(salon) || 0;
+            const d = parseFloat(deposito) || 0;
+            if (s === 0 && d === 0) return '';
+            return Math.round((s + d) * 100) / 100;
         }
 
-        async function guardarDatos() {
-            try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': MASTER_KEY
-                    },
-                    body: JSON.stringify(datosInventario)
+        function actualizarBebida(catIndex, realIndex, input) {
+            const salonVal = document.getElementById(`salon_${catIndex}_${realIndex}`).value;
+            const depositoVal = document.getElementById(`deposito_${catIndex}_${realIndex}`).value;
+            
+            datosInventario[catIndex].items[realIndex].salon = salonVal;
+            datosInventario[catIndex].items[realIndex].deposito = depositoVal;
+            
+            document.getElementById(`total_${catIndex}_${realIndex}`).value = calcularTotal(salonVal, depositoVal);
+            guardarEstructura();
+            calcularTotalCategoria(catIndex);
+        }
+
+        function guardarSimple(catIndex, realIndex, input) {
+            const val = input.value;
+            datosInventario[catIndex].items[realIndex].deposito = val;
+            document.getElementById(`total_${catIndex}_${realIndex}`).value = val;
+            guardarEstructura();
+            calcularTotalCategoria(catIndex);
+        }
+
+        function actualizarPrecio(catIndex, realIndex, input) {
+            const precioVal = input.value;
+            datosInventario[catIndex].items[realIndex].precio = precioVal;
+            guardarEstructura();
+            calcularTotalCategoria(catIndex);
+        }
+
+        function llenarSelectCategorias(catSeleccionada = 0) {
+            const select = document.getElementById('selectCategoriaItem');
+            select.innerHTML = '';
+            datosInventario.forEach((cat, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = cat.categoria;
+                if (idx === catSeleccionada) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function abrirModalEditar(catIndex, realIndex) {
+            document.getElementById('modalTitulo').innerText = 'Editar Producto';
+            document.getElementById('editCatIndex').value = catIndex;
+            document.getElementById('editItemIndex').value = realIndex;
+            document.getElementById('inputNombreItem').value = datosInventario[catIndex].items[realIndex].nombre;
+            document.getElementById('selectTipoCantidad').value = datosInventario[catIndex].items[realIndex].tipo || 'unidad';
+            llenarSelectCategorias(catIndex);
+            document.getElementById('btnEliminarProd').style.display = 'block';
+            document.getElementById('modalProducto').style.display = 'flex';
+        }
+
+        function abrirModalNuevo() {
+            document.getElementById('modalTitulo').innerText = 'Nuevo Producto';
+            document.getElementById('editCatIndex').value = '';
+            document.getElementById('editItemIndex').value = '';
+            document.getElementById('inputNombreItem').value = '';
+            document.getElementById('selectTipoCantidad').value = 'unidad';
+            llenarSelectCategorias(0);
+            document.getElementById('btnEliminarProd').style.display = 'none';
+            document.getElementById('modalProducto').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalProducto').style.display = 'none';
+        }
+
+        function abrirModalNuevaCategoria() {
+            document.getElementById('inputNombreCategoria').value = '';
+            document.getElementById('selectEsBebidaCat').value = 'false';
+            document.getElementById('modalCategoria').style.display = 'flex';
+        }
+
+        function cerrarModalCategoria() {
+            document.getElementById('modalCategoria').style.display = 'none';
+        }
+
+        function guardarNuevaCategoria() {
+            const nombre = document.getElementById('inputNombreCategoria').value.trim();
+            const esBebida = document.getElementById('selectEsBebidaCat').value === 'true';
+
+            if (!nombre) {
+                alert('Por favor ingrese un nombre para la sección.');
+                return;
+            }
+
+            datosInventario.push({
+                categoria: nombre.toUpperCase(),
+                es_bebida: esBebida,
+                orden: "manual",
+                items: []
+            });
+
+            guardarEstructura();
+            cerrarModalCategoria();
+            renderizarInventario();
+        }
+
+        function guardarEdicionProducto() {
+            const catIndexOld = document.getElementById('editCatIndex').value;
+            const itemIndexOld = document.getElementById('editItemIndex').value;
+            const nuevoNombre = document.getElementById('inputNombreItem').value.trim();
+            const nuevaCatIndex = parseInt(document.getElementById('selectCategoriaItem').value);
+            const nuevoTipo = document.getElementById('selectTipoCantidad').value;
+
+            if (!nuevoNombre) {
+                alert('El nombre no puede estar vacío.');
+                return;
+            }
+
+            if (catIndexOld === '' || itemIndexOld === '') {
+                datosInventario[nuevaCatIndex].items.push({ nombre: nuevoNombre, tipo: nuevoTipo, salon: '', deposito: '', precio: '' });
+            } else {
+                const catOld = parseInt(catIndexOld);
+                const idxOld = parseInt(itemIndexOld);
+                const itemObj = datosInventario[catOld].items.splice(idxOld, 1)[0];
+                
+                itemObj.nombre = nuevoNombre;
+                itemObj.tipo = nuevoTipo;
+
+                if (catOld === nuevaCatIndex) {
+                    datosInventario[catOld].items.splice(idxOld, 0, itemObj);
+                } else {
+                    datosInventario[nuevaCatIndex].items.push(itemObj);
+                }
+            }
+
+            guardarEstructura();
+            cerrarModal();
+            renderizarInventario();
+        }
+
+        function eliminarProducto() {
+            if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
+            const catIndex = document.getElementById('editCatIndex').value;
+            const realIndex = document.getElementById('editItemIndex').value;
+
+            datosInventario[catIndex].items.splice(realIndex, 1);
+            guardarEstructura();
+            cerrarModal();
+            renderizarInventario();
+        }
+
+        function filtrarProductos() {
+            const filtro = document.getElementById('buscador').value.toLowerCase();
+            const secciones = document.querySelectorAll('.category-section');
+            let totalVisibles = 0;
+
+            secciones.forEach(seccion => {
+                const items = seccion.querySelectorAll('.item-row');
+                let visiblesEnSeccion = 0;
+
+                items.forEach(item => {
+                    const nombre = item.querySelector('.item-name').innerText.toLowerCase();
+                    if (nombre.includes(filtro)) {
+                        item.style.display = 'flex';
+                        visiblesEnSeccion++;
+                    } else {
+                        item.style.display = 'none';
+                    }
                 });
 
-                if (!response.ok) throw new Error('Error al guardar en JSONBin');
+                if (visiblesEnSeccion > 0) {
+                    seccion.style.display = 'block';
+                    totalVisibles++;
+                } else {
+                    seccion.style.display = 'none';
+                }
+            });
 
-                alert('¡Cambios guardados correctamente en la nube!');
-            } catch (error) {
-                console.error(error);
-                alert('Hubo un error al intentar guardar los datos.');
+            document.getElementById('noResults').style.display = totalVisibles === 0 ? 'block' : 'none';
+        }
+
+        function reiniciarStock() {
+            if (confirm('¿Estás seguro de que deseas borrar todo el stock ingresado?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
             }
         }
 
-        window.onload = cargarDatos;
+        function compartirWhatsApp() {
+            let texto = "```\n";
+            texto += "  INVENTARIO - PIZZERÍA TOMASITO  \n";
+            texto += "==================================\n";
+            let hayDatos = false;
+
+            datosInventario.forEach((cat, catIndex) => {
+                let catTexto = "";
+                let totalSeccionVal = 0;
+
+                cat.items.forEach(item => {
+                    const nombre = item.nombre;
+                    const precio = parseFloat(item.precio) || 0;
+
+                    if (cat.es_bebida) {
+                        const salon = parseFloat(item.salon) || 0;
+                        const deposito = parseFloat(item.deposito) || 0;
+                        const total = salon + deposito;
+
+                        if (total > 0) {
+                            hayDatos = true;
+                            const subtotal = total * precio;
+                            totalSeccionVal += subtotal;
+                            let nombreCorto = nombre.length > 18 ? nombre.substring(0, 15) + '...' : nombre.padEnd(18, ' ');
+                            let cantStr = `${total}`.padStart(4, ' ');
+                            let subStr = `$${subtotal.toLocaleString('es-AR')}`.padStart(8, ' ');
+                            catTexto += `${nombreCorto} | ${cantStr} | ${subStr}\n`;
+                        }
+                    } else {
+                        const deposito = parseFloat(item.deposito) || 0;
+                        if (deposito > 0) {
+                            hayDatos = true;
+                            const subtotal = deposito * precio;
+                            totalSeccionVal += subtotal;
+                            let nombreCorto = nombre.length > 18 ? nombre.substring(0, 15) + '...' : nombre.padEnd(18, ' ');
+                            let cantStr = `${deposito}`.padStart(4, ' ');
+                            let subStr = `$${subtotal.toLocaleString('es-AR')}`.padStart(8, ' ');
+                            catTexto += `${nombreCorto} | ${cantStr} | ${subStr}\n`;
+                        }
+                    }
+                });
+
+                if (catTexto) {
+                    texto += `\n[ ${cat.categoria} ]\n`;
+                    texto += `PRODUCTO           | CANT | SUBT.\n`;
+                    texto += `----------------------------------\n`;
+                    texto += catTexto;
+                    texto += `TOTAL SECCIÓN: $${totalSeccionVal.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}\n`;
+                }
+            });
+
+            texto += "```";
+
+            if (!hayDatos) {
+                alert('No hay productos con stock cargado para enviar.');
+                return;
+            }
+
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+            const win = window.open(url, '_blank');
+            if (!win) {
+                window.location.href = url;
+            }
+        }
+
+        window.onload = renderizarInventario;
     </script>
 </body>
 </html>
