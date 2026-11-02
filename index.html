@@ -30,8 +30,8 @@
     </div>
 
     <script>
-        const BIN_ID = '6ae3e464ffd5d16053973fbc';
-        const MASTER_KEY = '$2a$10$a5VyH.YAeeP8djArd4kpV.tXeHFKEJ2hbZlitrM/.g8edAv3Wlgn2';
+        const BIN_ID = '6ae89fc2ac6210605a660242';
+        const MASTER_KEY = '$2a$10$ezuX9AyY6.cSIpMcu4/UYeKBXT9GY9dNvkTu6his1ZkAoCidM6qSy';
         
         let datosInventario = [];
 
@@ -50,14 +50,12 @@
                 if (!response.ok) throw new Error('No se pudo conectar con JSONBin');
 
                 const data = await response.json();
-                
-                // Aseguramos que tome el array tanto si viene en .record o directo
-                datosInventario = data.record ? (data.record.record || data.record) : data;
+                datosInventario = data.record;
 
                 renderizarInventario();
             } catch (error) {
                 console.error(error);
-                contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500 font-semibold">Error al cargar los datos. Verificá tu conexión.</p></div>';
+                contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500 font-semibold">Error al cargar los datos. Verificá tu Bin ID.</p></div>';
             }
         }
 
@@ -66,7 +64,7 @@
             contenedor.innerHTML = '';
 
             if (!Array.isArray(datosInventario)) {
-                contenedor.innerHTML = `<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500">El formato no es un arreglo válido. Datos recibidos:</p><pre class="text-xs mt-2 text-left bg-gray-100 p-2 overflow-auto">${JSON.stringify(datosInventario, null, 2)}</pre></div>`;
+                contenedor.innerHTML = `<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500">El Bin está vacío o no tiene el formato correcto.</p></div>`;
                 return;
             }
 
