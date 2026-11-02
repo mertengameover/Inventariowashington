@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario y Ventas - Pizzería Tomasito</title>
+    <!-- Tailwind CSS para los estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <div class="max-w-6xl mx-auto p-4">
+        <header class="bg-white shadow rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-red-600 mb-1">🍕 Pizzería Tomasito - Control de Stock</h1>
+                <p class="text-sm text-gray-600">Sincronizado con JSONBin.</p>
+            </div>
+            <button onclick="cargarDatos()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-semibold shadow">🔄 Actualizar Stock</button>
+        </header>
+
+        <!-- Contenedor del Inventario -->
+        <div id="contenedorInventario" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6 text-center">
+                <p class="text-blue-500 font-medium">Cargando inventario desde la nube...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BIN_ID = '6ae3e464ffd5d16053973fbc';
+        const MASTER_KEY = '$2a$10$a5VyH.YAeeP8djArd4kpV.tXeHFKEJ2hbZlitrM/.g8edAv3Wlgn2';
+
+        async function cargarDatos() {
+            const contenedor = document.getElementById('contenedorInventario');
+            contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-blue-500 font-medium">Sincronizando con JSONBin...</p></div>';
+
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: {
+                        'X-Master-Key': MASTER_KEY
+                    }
+                });
+
+                if (!response.ok) throw new Error('No se pudo conectar con JSONBin');
+
+                const data = await response.json();
+                // JSONBin a veces envuelve los datos en .record
+                const categorias = data.record || data;
+
+                renderizarInventario(categorias);
+            } catch (error) {
+                console.error(error);
+                contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500 font-semibold">Error al cargar los datos. Verificá tu conexión.</p></div>';
+            }
+        }
+
+        function renderizarInventario(categorias) {
+            const contenedor = document.getElementById('contenedorInventario');
+            contenedor.innerHTML = '';
+
+            if (!Array.isArray(categorias)) {
+                contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6"><p class="text-red-500">El formato de los datos no es válido.</p></div>';
+                return;
+            }
+
+            categorias.forEach(cat => {
+                let htmlItems = '';
+                
+                cat.items.forEach(item => {
+                    htmlItems += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 px-4 text-sm text-gray-800 font-medium">${item.nombre}</td>
+                            <td class="py-2 px-4 text-sm text-gray-600 capitalize">${item.tipo || '-'}</td>
+                            <td class="py-2 px-4 text-sm text-gray-600 text-center">${item.salon !== undefined && item.salon !== "" ? item.salon : '-'}</td>
+                            <td class="py-2 px-4 text-sm text-gray-600 text-center">${item.deposito !== undefined && item.deposito !== "" ? item.deposito : '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                const seccion = `
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2 flex justify-between items-center">
+                            <span>📂 ${cat.categoria}</span>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Items: ${cat.items.length}</span>
+                        </h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-left">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
+                                        <th class="py-2 px-4">Producto</th>
+                                        <th class="py-2 px-4">Tipo</th>
+                                        <th class="py-2 px-4 text-center">Salón</th>
+                                        <th class="py-2 px-4 text-center">Depósito</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${htmlItems}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                contenedor.innerHTML += seccion;
+            });
+        }
+
+        // Cargar datos automáticamente al iniciar
+        window.onload = cargarDatos;
+    </script>
+</body>
+</html>
