@@ -50,7 +50,9 @@
                 if (!response.ok) throw new Error('No se pudo conectar con JSONBin');
 
                 const data = await response.json();
-                datosInventario = data.record;
+                
+                // Aseguramos que tome el array tanto si viene en .record o directo
+                datosInventario = data.record ? (data.record.record || data.record) : data;
 
                 renderizarInventario();
             } catch (error) {
@@ -64,7 +66,7 @@
             contenedor.innerHTML = '';
 
             if (!Array.isArray(datosInventario)) {
-                contenedor.innerHTML = '<div class="bg-white shadow rounded-lg p-6"><p class="text-red-500">El formato de los datos no es válido.</p></div>';
+                contenedor.innerHTML = `<div class="bg-white shadow rounded-lg p-6 text-center"><p class="text-red-500">El formato no es un arreglo válido. Datos recibidos:</p><pre class="text-xs mt-2 text-left bg-gray-100 p-2 overflow-auto">${JSON.stringify(datosInventario, null, 2)}</pre></div>`;
                 return;
             }
 
