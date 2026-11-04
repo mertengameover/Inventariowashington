@@ -42,6 +42,83 @@
             font-weight: 600;
         }
 
+        /* Pantalla de Selección de Sucursal */
+        #selectorSucursal {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .sucursal-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .sucursal-card h2 {
+            color: var(--secondary);
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+
+        .btn-sucursal {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-sucursal:active {
+            opacity: 0.8;
+        }
+
+        .btn-sucursal.julio {
+            background-color: #2980b9;
+        }
+
+        /* Contenedor principal de la App (oculto hasta elegir sucursal) */
+        #appContainer {
+            display: none;
+        }
+
+        .branch-banner {
+            background: #eef2f5;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-change-branch {
+            background: var(--secondary);
+            border: none;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
         .controls-card {
             background: var(--card-bg);
             padding: 12px;
@@ -295,6 +372,13 @@
             color: #2c3e50;
         }
 
+        input[type="number"].subtotal-field {
+            background-color: #eafaf1;
+            font-weight: bold;
+            color: #27ae60;
+            width: 66px;
+        }
+
         input[type="number"]:focus {
             border-color: var(--primary);
         }
@@ -406,7 +490,7 @@
 
         @media print {
             body { background: white; padding: 0; }
-            .controls-card, button, .btn-action, .btn-cat-action, .drag-handle { display: none; }
+            .controls-card, button, .btn-action, .btn-cat-action, .drag-handle, .branch-banner { display: none; }
             .category-section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
             .category-header { background-color: #333 !important; -webkit-print-color-adjust: exact; }
             .cat-title-input { border: none; background: transparent; color: white !important; }
@@ -415,26 +499,51 @@
 </head>
 <body>
 
-    <header>
-        <h1>PIZZERÍA TOMASITO</h1>
-        <p class="subtitle">Control de Inventario y Stock</p>
-    </header>
-
-    <div class="controls-card">
-        <input type="text" id="buscador" class="search-box" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
-        <button class="btn-add" onclick="abrirModalNuevo()">+ Agregar Nuevo Producto</button>
-        <button class="btn-add-cat" onclick="abrirModalNuevaCategoria()">+ Agregar Nueva Sección</button>
-        <div class="actions-row">
-            <button class="btn-export" onclick="compartirWhatsApp()">WhatsApp</button>
-            <button class="btn-backup" onclick="abrirModalExportar()">Exportar</button>
-            <button class="btn-cloud" onclick="abrirModalRestaurar()">Restaurar</button>
-            <button class="btn-print" onclick="window.print()">Imprimir</button>
-            <button class="btn-reset" onclick="reiniciarStock()">Limpiar</button>
+    <!-- Pantalla de Selección de Sucursal -->
+    <div id="selectorSucursal">
+        <div class="sucursal-card">
+            <h1>PIZZERÍA TOMASITO</h1>
+            <h2>Seleccionar Sucursal</h2>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">Elige el local para abrir su inventario mensual:</p>
+            
+            <button class="btn-sucursal" onclick="elegirSucursal('washington', '6ae89fc2ac6210605a660242')">
+                🍕 Washington 486
+            </button>
+            
+            <button class="btn-sucursal julio" onclick="elegirSucursal('julio', '6aeb5b46ffd5d16053a60759')">
+                🍕 14 de Julio
+            </button>
         </div>
     </div>
 
-    <div id="contenedorInventario"></div>
-    <div id="noResults" class="no-results">No se encontraron productos coincidentes.</div>
+    <!-- Contenedor Principal de la App -->
+    <div id="appContainer">
+        <header>
+            <h1>PIZZERÍA TOMASITO</h1>
+            <p class="subtitle">Control de Inventario y Stock</p>
+        </header>
+
+        <div class="branch-banner">
+            <span id="nombreSucursalBanner">Sucursal: --</span>
+            <button class="btn-change-branch" onclick="cambiarSucursal()">Cambiar Local</button>
+        </div>
+
+        <div class="controls-card">
+            <input type="text" id="buscador" class="search-box" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
+            <button class="btn-add" onclick="abrirModalNuevo()">+ Agregar Nuevo Producto</button>
+            <button class="btn-add-cat" onclick="abrirModalNuevaCategoria()">+ Agregar Nueva Sección</button>
+            <div class="actions-row">
+                <button class="btn-export" onclick="compartirWhatsApp()">WhatsApp</button>
+                <button class="btn-backup" onclick="abrirModalExportar()">Exportar</button>
+                <button class="btn-cloud" onclick="abrirModalRestaurar()">Restaurar</button>
+                <button class="btn-print" onclick="window.print()">Imprimir</button>
+                <button class="btn-reset" onclick="reiniciarStock()">Limpiar</button>
+            </div>
+        </div>
+
+        <div id="contenedorInventario"></div>
+        <div id="noResults" class="no-results">No se encontraron productos coincidentes.</div>
+    </div>
 
     <!-- Modal Elegir Exportar (Dispositivo o Nube) -->
     <div id="modalExportar" class="modal">
@@ -449,7 +558,7 @@
             
             <button class="choice-btn" onclick="exportarNube()">
                 ☁️ En la Nube (JSONBin.io)
-                <span>Sube los datos actualizados a tu base en la nube.</span>
+                <span>Sube los datos a la nube de esta sucursal.</span>
             </button>
 
             <div class="modal-buttons" style="margin-top: 15px;">
@@ -471,30 +580,11 @@
             
             <button class="choice-btn" onclick="importarNube()">
                 ☁️ Desde la Nube (JSONBin.io)
-                <span>Descarga y aplica los datos desde tu base en la nube.</span>
+                <span>Descarga los datos de la nube de esta sucursal.</span>
             </button>
 
             <div class="modal-buttons" style="margin-top: 15px;">
                 <button class="btn-cancel" onclick="cerrarModalRestaurar()">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Configuración JSONBin -->
-    <div id="modalConfigCloud" class="modal">
-        <div class="modal-content">
-            <h3>Configurar Conexión Nube</h3>
-            <p style="font-size: 0.82rem; color: #666; margin-top: 0;">Ingresa los datos de tu Bin en JSONBin.io (solo la primera vez).</p>
-            
-            <label>Bin ID:</label>
-            <input type="text" id="inputBinId" placeholder="Ej: 64a8b7...">
-
-            <label>Master Key (X-Master-Key):</label>
-            <input type="password" id="inputMasterKey" placeholder="Ej: $2a$10$...">
-
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="cerrarModalConfigCloud()">Cancelar</button>
-                <button class="btn-save" onclick="guardarConfigCloudYContinuar()">Guardar y Continuar</button>
             </div>
         </div>
     </div>
@@ -549,10 +639,14 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'tomasito_datos_inventario_v19';
+        const MASTER_KEY = '$2a$10$ezuX9AyY6.cSIpMcu4/UYeKBXT9GY9dNvkTu6his1ZkAoCidM6qSy';
+        let currentBranchKey = '';
+        let currentBinId = '';
+        let currentBranchName = '';
+        let STORAGE_KEY = '';
         let cloudActionPending = null;
 
-        let datosInventario = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+        const defaultStructure = [
             {
                 categoria: "CERVEZAS",
                 es_bebida: true,
@@ -694,7 +788,7 @@
                     { nombre: "MAICITOS PEHUAMAR", tipo: "unidad", deposito: "2" },
                     { nombre: "PAPAS PEHUAMAR LISA", tipo: "unidad" },
                     { nombre: "PAPAS PEHUAMAR ACANALADAS", tipo: "unidad", deposito: "3" },
-                    { nombre: "3D", tipo: "unidad", deposito: "2" },
+                    { localStorage: "3D", tipo: "unidad", deposito: "2" },
                     { nombre: "LAYS CLASICA", tipo: "unidad", deposito: "15" },
                     { nombre: "RUEDITAS", tipo: "unidad", deposito: "4" },
                     { nombre: "RAMITAS", tipo: "unidad" }
@@ -763,6 +857,64 @@
             }
         ];
 
+        let datosInventario = [];
+
+        // Al iniciar, verificamos si ya había una sucursal seleccionada en este navegador
+        window.onload = function() {
+            const savedBranch = localStorage.getItem('tomasito_active_branch');
+            const savedBin = localStorage.getItem('tomasito_active_bin');
+            const savedName = localStorage.getItem('tomasito_active_name');
+
+            if (savedBranch && savedBin) {
+                currentBranchKey = savedBranch;
+                currentBinId = savedBin;
+                currentBranchName = savedName;
+                STORAGE_KEY = 'tomasito_inv_' + savedBranch;
+                
+                document.getElementById('selectorSucursal').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.getElementById('nombreSucursalBanner').innerText = 'Sucursal: ' + savedName;
+
+                cargarDatosLocalesOCloudInicial();
+            }
+        };
+
+        function elegirSucursal(branchKey, binId) {
+            currentBranchKey = branchKey;
+            currentBinId = binId;
+            STORAGE_KEY = 'tomasito_inv_' + branchKey;
+
+            if (branchKey === 'washington') {
+                currentBranchName = 'Washington 486';
+            } else {
+                currentBranchName = '14 de Julio';
+            }
+
+            localStorage.setItem('tomasito_active_branch', currentBranchKey);
+            localStorage.setItem('tomasito_active_bin', currentBinId);
+            localStorage.setItem('tomasito_active_name', currentBranchName);
+
+            document.getElementById('selectorSucursal').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            document.getElementById('nombreSucursalBanner').innerText = 'Sucursal: ' + currentBranchName;
+
+            cargarDatosLocalesOCloudInicial();
+        }
+
+        function cambiarSucursal() {
+            if (confirm('¿Deseas cambiar de sucursal?')) {
+                localStorage.removeItem('tomasito_active_branch');
+                localStorage.removeItem('tomasito_active_bin');
+                localStorage.removeItem('tomasito_active_name');
+                location.reload();
+            }
+        }
+
+        function cargarDatosLocalesOCloudInicial() {
+            datosInventario = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultStructure;
+            renderizarInventario();
+        }
+
         function guardarEstructura() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(datosInventario));
         }
@@ -782,43 +934,13 @@
             document.getElementById('modalRestaurar').style.display = 'none';
         }
 
-        function abrirModalConfigCloud(action) {
-            cloudActionPending = action; // 'export' or 'import'
-            document.getElementById('inputBinId').value = localStorage.getItem('tomasito_bin_id') || '';
-            document.getElementById('inputMasterKey').value = localStorage.getItem('tomasito_master_key') || '';
-            document.getElementById('modalConfigCloud').style.display = 'flex';
-        }
-        function cerrarModalConfigCloud() {
-            document.getElementById('modalConfigCloud').style.display = 'none';
-        }
-
-        function guardarConfigCloudYContinuar() {
-            const binId = document.getElementById('inputBinId').value.trim();
-            const masterKey = document.getElementById('inputMasterKey').value.trim();
-
-            if (!binId || !masterKey) {
-                alert('Por favor completa ambos campos.');
-                return;
-            }
-
-            localStorage.setItem('tomasito_bin_id', binId);
-            localStorage.setItem('tomasito_master_key', masterKey);
-            cerrarModalConfigCloud();
-
-            if (cloudActionPending === 'export') {
-                ejecutarExportarNube(binId, masterKey);
-            } else if (cloudActionPending === 'import') {
-                ejecutarImportarNube(binId, masterKey);
-            }
-        }
-
         // Acciones Dispositivo
         function exportarDispositivo() {
             cerrarModalExportar();
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosInventario));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "inventario_tomasito_backup.json");
+            downloadAnchor.setAttribute("download", `inventario_tomasito_${currentBranchKey}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -855,40 +977,19 @@
         // Acciones Nube (JSONBin.io)
         function exportarNube() {
             cerrarModalExportar();
-            const binId = localStorage.getItem('tomasito_bin_id');
-            const masterKey = localStorage.getItem('tomasito_master_key');
-            if (!binId || !masterKey) {
-                abrirModalConfigCloud('export');
-            } else {
-                ejecutarExportarNube(binId, masterKey);
-            }
-        }
-
-        function importarNube() {
-            cerrarModalRestaurar();
-            const binId = localStorage.getItem('tomasito_bin_id');
-            const masterKey = localStorage.getItem('tomasito_master_key');
-            if (!binId || !masterKey) {
-                abrirModalConfigCloud('import');
-            } else {
-                ejecutarImportarNube(binId, masterKey);
-            }
-        }
-
-        function ejecutarExportarNube(binId, masterKey) {
-            fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+            fetch(`https://api.jsonbin.io/v3/b/${currentBinId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Master-Key': masterKey
+                    'X-Master-Key': MASTER_KEY
                 },
                 body: JSON.stringify(datosInventario)
             })
             .then(response => {
                 if (response.ok) {
-                    alert('¡Inventario guardado en la nube con éxito!');
+                    alert(`¡Inventario de ${currentBranchName} guardado en la nube con éxito!`);
                 } else {
-                    alert('Error al guardar en la nube. Verifica tus credenciales (Bin ID / Master Key).');
+                    alert('Error al guardar en la nube. Verifica la conexión.');
                 }
             })
             .catch(err => {
@@ -896,11 +997,12 @@
             });
         }
 
-        function ejecutarImportarNube(binId, masterKey) {
-            fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+        function importarNube() {
+            cerrarModalRestaurar();
+            fetch(`https://api.jsonbin.io/v3/b/${currentBinId}/latest`, {
                 method: 'GET',
                 headers: {
-                    'X-Master-Key': masterKey
+                    'X-Master-Key': MASTER_KEY
                 }
             })
             .then(response => {
@@ -916,13 +1018,13 @@
                     datosInventario = record;
                     guardarEstructura();
                     renderizarInventario();
-                    alert('¡Inventario descargado y restaurado desde la nube con éxito!');
+                    alert(`¡Inventario de ${currentBranchName} descargado y restaurado desde la nube con éxito!`);
                 } else {
-                    alert('El contenido del Bin no tiene el formato correcto.');
+                    alert('El contenido del Bin en la nube está vacío o no tiene el formato correcto.');
                 }
             })
             .catch(err => {
-                alert('Error al recuperar de la nube. Verifica tus credenciales.');
+                alert('Error al recuperar de la nube.');
             });
         }
 
@@ -980,16 +1082,18 @@
             let totalSeccion = 0;
             const cat = datosInventario[catIndex];
             
-            cat.items.forEach(item => {
+            cat.items.forEach((item, realIndex) => {
                 const precio = parseFloat(item.precio) || 0;
+                let subtotal = 0;
                 if (cat.es_bebida) {
                     const salon = parseFloat(item.salon) || 0;
                     const deposito = parseFloat(item.deposito) || 0;
-                    totalSeccion += (salon + deposito) * precio;
+                    subtotal = (salon + deposito) * precio;
                 } else {
                     const deposito = parseFloat(item.deposito) || 0;
-                    totalSeccion += deposito * precio;
+                    subtotal = deposito * precio;
                 }
+                totalSeccion += subtotal;
             });
 
             const el = document.getElementById(`total_cat_${catIndex}`);
@@ -1030,6 +1134,7 @@
 
                     if (cat.es_bebida) {
                         const total = calcularTotal(salon, deposito);
+                        const subtotal = calcularSubtotalBebida(salon, deposito, precio);
 
                         itemsHTML += `
                             <div class="item-row" ${draggableAttr} ${dragEvents} data-name="${nombre.toLowerCase()}">
@@ -1056,12 +1161,17 @@
                                             <label>Precio $</label>
                                             <input type="number" min="0" step="any" placeholder="0" value="${precio}" class="price-field" id="precio_${catIndex}_${realIndex}" oninput="actualizarPrecio(${catIndex}, ${realIndex}, this)">
                                         </div>
+                                        <div class="input-group">
+                                            <label>Subtotal $</label>
+                                            <input type="number" class="subtotal-field" value="${subtotal}" id="subtotal_${catIndex}_${realIndex}" readonly>
+                                        </div>
                                         <button class="btn-action" onclick="abrirModalEditar(${catIndex}, ${realIndex})" title="Editar">✏️</button>
                                     </div>
                                 </div>
                             </div>
                         `;
                     } else {
+                        const subtotal = calcularSubtotalSimple(deposito, precio);
                         itemsHTML += `
                             <div class="item-row" ${draggableAttr} ${dragEvents} data-name="${nombre.toLowerCase()}">
                                 ${dragHandleHTML}
@@ -1082,6 +1192,10 @@
                                         <div class="input-group">
                                             <label>Precio $</label>
                                             <input type="number" min="0" step="any" placeholder="0" value="${precio}" class="price-field" id="precio_${catIndex}_${realIndex}" oninput="actualizarPrecio(${catIndex}, ${realIndex}, this)">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Subtotal $</label>
+                                            <input type="number" class="subtotal-field" value="${subtotal}" id="subtotal_${catIndex}_${realIndex}" readonly>
                                         </div>
                                         <button class="btn-action" onclick="abrirModalEditar(${catIndex}, ${realIndex})" title="Editar">✏️</button>
                                     </div>
@@ -1124,22 +1238,43 @@
             return Math.round((s + d) * 100) / 100;
         }
 
+        function calcularSubtotalBebida(salon, deposito, precio) {
+            const s = parseFloat(salon) || 0;
+            const d = parseFloat(deposito) || 0;
+            const p = parseFloat(precio) || 0;
+            const cant = s + d;
+            if (cant === 0 || p === 0) return '';
+            return Math.round(cant * p * 100) / 100;
+        }
+
+        function calcularSubtotalSimple(deposito, precio) {
+            const d = parseFloat(deposito) || 0;
+            const p = parseFloat(precio) || 0;
+            if (d === 0 || p === 0) return '';
+            return Math.round(d * p * 100) / 100;
+        }
+
         function actualizarBebida(catIndex, realIndex, input) {
             const salonVal = document.getElementById(`salon_${catIndex}_${realIndex}`).value;
             const depositoVal = document.getElementById(`deposito_${catIndex}_${realIndex}`).value;
+            const precioVal = datosInventario[catIndex].items[realIndex].precio || 0;
             
             datosInventario[catIndex].items[realIndex].salon = salonVal;
             datosInventario[catIndex].items[realIndex].deposito = depositoVal;
             
             document.getElementById(`total_${catIndex}_${realIndex}`).value = calcularTotal(salonVal, depositoVal);
+            document.getElementById(`subtotal_${catIndex}_${realIndex}`).value = calcularSubtotalBebida(salonVal, depositoVal, precioVal);
             guardarEstructura();
             calcularTotalCategoria(catIndex);
         }
 
         function guardarSimple(catIndex, realIndex, input) {
             const val = input.value;
+            const precioVal = datosInventario[catIndex].items[realIndex].precio || 0;
             datosInventario[catIndex].items[realIndex].deposito = val;
+            
             document.getElementById(`total_${catIndex}_${realIndex}`).value = val;
+            document.getElementById(`subtotal_${catIndex}_${realIndex}`).value = calcularSubtotalSimple(val, precioVal);
             guardarEstructura();
             calcularTotalCategoria(catIndex);
         }
@@ -1147,6 +1282,17 @@
         function actualizarPrecio(catIndex, realIndex, input) {
             const precioVal = input.value;
             datosInventario[catIndex].items[realIndex].precio = precioVal;
+
+            const cat = datosInventario[catIndex];
+            if (cat.es_bebida) {
+                const salonVal = document.getElementById(`salon_${catIndex}_${realIndex}`).value;
+                const depositoVal = document.getElementById(`deposito_${catIndex}_${realIndex}`).value;
+                document.getElementById(`subtotal_${catIndex}_${realIndex}`).value = calcularSubtotalBebida(salonVal, depositoVal, precioVal);
+            } else {
+                const depositoVal = document.getElementById(`deposito_${catIndex}_${realIndex}`).value;
+                document.getElementById(`subtotal_${catIndex}_${realIndex}`).value = calcularSubtotalSimple(depositoVal, precioVal);
+            }
+
             guardarEstructura();
             calcularTotalCategoria(catIndex);
         }
@@ -1296,7 +1442,7 @@
         }
 
         function reiniciarStock() {
-            if (confirm('¿Estás seguro de que deseas borrar todo el stock ingresado?')) {
+            if (confirm(`¿Estás seguro de que deseas borrar todo el stock ingresado para ${currentBranchName}?`)) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
@@ -1304,7 +1450,7 @@
 
         function compartirWhatsApp() {
             let texto = "```\n";
-            texto += "  INVENTARIO - PIZZERÍA TOMASITO  \n";
+            texto += `  INVENTARIO - TOMASITO (${currentBranchName.toUpperCase()})  \n`;
             texto += "==================================\n";
             let hayDatos = false;
 
@@ -1366,8 +1512,6 @@
                 window.location.href = url;
             }
         }
-
-        window.onload = renderizarInventario;
     </script>
 </body>
 </html>
