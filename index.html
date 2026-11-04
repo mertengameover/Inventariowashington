@@ -91,7 +91,7 @@
             background-color: #2980b9;
         }
 
-        /* Contenedor principal de la App (oculto hasta elegir sucursal) */
+        /* Contenedor principal de la App */
         #appContainer {
             display: none;
         }
@@ -644,7 +644,6 @@
         let currentBinId = '';
         let currentBranchName = '';
         let STORAGE_KEY = '';
-        let cloudActionPending = null;
 
         const defaultStructure = [
             {
@@ -788,7 +787,7 @@
                     { nombre: "MAICITOS PEHUAMAR", tipo: "unidad", deposito: "2" },
                     { nombre: "PAPAS PEHUAMAR LISA", tipo: "unidad" },
                     { nombre: "PAPAS PEHUAMAR ACANALADAS", tipo: "unidad", deposito: "3" },
-                    { localStorage: "3D", tipo: "unidad", deposito: "2" },
+                    { nombre: "3D", tipo: "unidad", deposito: "2" },
                     { nombre: "LAYS CLASICA", tipo: "unidad", deposito: "15" },
                     { nombre: "RUEDITAS", tipo: "unidad", deposito: "4" },
                     { nombre: "RAMITAS", tipo: "unidad" }
@@ -859,7 +858,6 @@
 
         let datosInventario = [];
 
-        // Al iniciar, verificamos si ya había una sucursal seleccionada en este navegador
         window.onload = function() {
             const savedBranch = localStorage.getItem('tomasito_active_branch');
             const savedBin = localStorage.getItem('tomasito_active_bin');
@@ -919,7 +917,6 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(datosInventario));
         }
 
-        // Modales Exportar / Restaurar
         function abrirModalExportar() {
             document.getElementById('modalExportar').style.display = 'flex';
         }
@@ -934,7 +931,6 @@
             document.getElementById('modalRestaurar').style.display = 'none';
         }
 
-        // Acciones Dispositivo
         function exportarDispositivo() {
             cerrarModalExportar();
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosInventario));
@@ -974,7 +970,6 @@
             input.click();
         }
 
-        // Acciones Nube (JSONBin.io)
         function exportarNube() {
             cerrarModalExportar();
             fetch(`https://api.jsonbin.io/v3/b/${currentBinId}`, {
@@ -1014,17 +1009,23 @@
             })
             .then(data => {
                 const record = data.record;
-                if (Array.isArray(record)) {
+                if (Array.isArray(record) && record.length > 0) {
                     datosInventario = record;
                     guardarEstructura();
                     renderizarInventario();
                     alert(`¡Inventario de ${currentBranchName} descargado y restaurado desde la nube con éxito!`);
                 } else {
-                    alert('El contenido del Bin en la nube está vacío o no tiene el formato correcto.');
+                    datosInventario = defaultStructure;
+                    guardarEstructura();
+                    renderizarInventario();
+                    alert(`El Bin de la nube estaba vacío. Se cargó la estructura por defecto para ${currentBranchName}.`);
                 }
             })
             .catch(err => {
-                alert('Error al recuperar de la nube.');
+                datosInventario = defaultStructure;
+                guardarEstructura();
+                renderizarInventario();
+                alert(`No se pudo conectar a la nube. Se cargó la estructura por defecto localmente.`);
             });
         }
 
@@ -1442,9 +1443,16 @@
         }
 
         function reiniciarStock() {
-            if (confirm(`¿Estás seguro de que deseas borrar todo el stock ingresado para ${currentBranchName}?`)) {
-                localStorage.removeItem(STORAGE_KEY);
-                location.reload();
+            if (confirm(`¿Estás seguro de que deseas vaciar las cantidades (Salón y Depósito) de ${currentBranchName}? Los precios se mantendrán.`)) {
+                datosInventario.forEach(cat => {
+                    cat.items.forEach(item => {
+                        item.salon = "";
+                        item.deposito = "";
+                    });
+                });
+                guardarEstructura();
+                renderizarInventario();
+                alert('¡Cantidades puestas en cero con éxito! Los precios se conservaron.');
             }
         }
 
